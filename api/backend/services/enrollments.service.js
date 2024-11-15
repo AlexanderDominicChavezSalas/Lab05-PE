@@ -33,9 +33,29 @@ class EnrollmentsService{
 
 
     async create(data) {
-        const res = await models.Enrollment.create(data);
-        return res;
+        try {
+            // Crea la matrícula (enrollment)
+            const enrollment = await models.Enrollment.create(data);
+
+            // Disminuye las vacantes del curso en 1
+            const course = await models.Course.findByPk(data.courseId);
+            if (!course) {
+                throw new Error('Curso no encontrado');
+            }
+            if (course.vacancies <= 0) {
+                throw new Error('No hay vacantes disponibles');
+            }
+
+            // Actualiza las vacantes directamente
+            await course.update({ vacancies: course.vacancies - 1 });
+
+            return enrollment;
+        } catch (error) {
+            console.error('Error al crear la matrícula:', error.message);
+            throw error;
+        }
     }
+
     async update(id, data) {
         const model = await models.Enrollment.findByPk(id);
         if (!model) {
@@ -47,6 +67,16 @@ class EnrollmentsService{
     }
     async delete(id){
         const model = await models.Enrollment.findByPk(id);
+        // AUmenta las vacantes del curso en 1
+        const course = await models.Course.findByPk(model.courseId);
+        if (!course) {
+            throw new Error('Curso no encontrado');
+        }
+        if (course.vacancies <= 0) {
+            throw new Error('No hay vacantes disponibles');
+        }
+        // Actualiza las vacantes directamente
+        await course.update({ vacancies: course.vacancies + 1 });
         await model.destroy();
         return { deleted: true };
     }
