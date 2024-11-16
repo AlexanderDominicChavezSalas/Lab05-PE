@@ -19,7 +19,7 @@ class ViewModel extends ChangeNotifier {
   List<Enrollment> EnrolledCourses = [];
   List<Course> AllCourses = [];
   ViewModel(this._navigationService) {
-    getAllCourses();
+    //getAllCourses();
   }
 
   navigateToEnrollmentPage() {
@@ -126,5 +126,9 @@ class ViewModel extends ChangeNotifier {
   /// Verifica si el estudiante está inscrito en un curso
   bool isEnrolled(int courseId) {
     return EnrolledCourses.any((enrollment) => enrollment.courseId == courseId);
+  }
+
+  void logout() {
+    _navigationService.navigate(const LoginPage());
   }
 }
