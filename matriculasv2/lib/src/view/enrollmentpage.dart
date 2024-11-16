@@ -8,69 +8,33 @@ class EnrollmentPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pagecontroller = Provider.of<ViewModel>(context);
+    final pageController = Provider.of<ViewModel>(context);
+
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 54, 184, 244),
       appBar: AppBar(
-        title: const Text("EnrollmentPage"), //page04
+        title: const Text("Enrollment"),
       ),
-      body: Column(
-        children: [
-          const Text("Cursos disponibles"),
-          ListView.builder(
-              itemCount: pagecontroller.AllCourses.length,
-              shrinkWrap: true,
-              itemBuilder: (BuildContext context, i) {
-                return ListTile(
-                  tileColor: Colors.white,
-                  title: Text(pagecontroller.AllCourses[i].name.toString()),
-                  subtitle: Text(
-                      pagecontroller.AllCourses[i].shift!.teacher.toString()),
-                  leading: Text(pagecontroller.AllCourses[i].code.toString()),
-                  trailing: ElevatedButton(
-                      onPressed: () {
-                        _showEnrollmentModal(context,
-                            pagecontroller.AllCourses[i], pagecontroller);
-                      },
-                      child: const Text("Matricular")),
-                );
-              }),
-          Container(
-            child: Row(
-              children: [
-                ElevatedButton(
-                    onPressed: () {
-                      pagecontroller.navigateToProfilePage();
-                    },
-                    child: const Text("Perfil")),
-                ElevatedButton(
-                    onPressed: () {
-                      pagecontroller.navigateToEnrollmentPage();
-                    },
-                    child: const Text("Cursos")),
-              ],
-            ),
-          )
-        ],
+      body: EnrollmentView(
+        courses: pageController.AllCourses,
+        onEnroll: (course) {
+          _showEnrollmentModal(context, course, pageController);
+        },
+        isEnrolled: (courseId) {
+          return pageController.isEnrolled(courseId);
+        },
       ),
     );
   }
 
   void _showEnrollmentModal(
-      BuildContext context, Course course, ViewModel pagecontroller) {
-    int? id = course.id;
-    String name = course.name.toString();
-    String description = course.description.toString();
-    String schedule = course.shift!.schedule.toString();
-    String letter = course.shift!.letter.toString();
-    String vacancies = course.vacancies.toString();
+      BuildContext context, Course course, ViewModel pageController) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Center(
             child: Text(
-              name,
+              course.name ?? "No name avaiable",
               textAlign: TextAlign.center,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
@@ -79,25 +43,23 @@ class EnrollmentPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Descripcion del curso",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              const Text("Description:",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 5),
-              Text(description),
+              Text(course.description ?? "No description available",
+                  textAlign: TextAlign.justify),
               const SizedBox(height: 10),
               Center(
                 child: Column(
                   children: [
-                    const Text(
-                      "Horario del curso",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(schedule),
+                    const Text("Schedule:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(course.shift?.schedule?.replaceAll("_", "\n") ??
+                        "No schedule available"),
                     const SizedBox(height: 10),
-                    Text("Grupo: $letter"),
+                    Text("Group: ${course.shift!.letter}"),
                     const SizedBox(height: 10),
-                    Text("Vacantes disponibles: $vacancies"),
+                    Text("Available vacancies: ${course.vacancies}"),
                   ],
                 ),
               ),
@@ -106,13 +68,15 @@ class EnrollmentPage extends StatelessWidget {
           actions: [
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(
-                    255, 128, 8, 0), // Red background color
-                foregroundColor: Colors.white, // White text color
+                backgroundColor: const Color.fromARGB(255, 128, 8, 0),
+                foregroundColor: Colors.white,
               ),
-              onPressed: () {
-                pagecontroller.enrollCourse(id);
-              }, // Disable if no vacancies
+              onPressed: (course.vacancies ?? 0) > 0
+                  ? () {
+                      pageController.enrollCourse(course.id!);
+                      Navigator.of(context).pop();
+                    }
+                  : null,
               child: const Text("Confirm Enrollment"),
             ),
             TextButton(
@@ -124,6 +88,73 @@ class EnrollmentPage extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class EnrollmentView extends StatelessWidget {
+  final List<Course> courses;
+  final void Function(Course course) onEnroll;
+  final bool Function(int courseId) isEnrolled;
+
+  const EnrollmentView({
+    super.key,
+    required this.courses,
+    required this.onEnroll,
+    required this.isEnrolled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: Text(
+                "Available Courses",
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: courses.length,
+            itemBuilder: (context, index) {
+              final course = courses[index];
+              final enrolled = isEnrolled(course.id!);
+
+              return Card(
+                margin: const EdgeInsets.all(10),
+                child: ListTile(
+                  title: Text(
+                    "${course.name ?? "No Name"} (Shift ${course.shift?.letter ?? "N/A"})",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    "Code: ${course.code ?? "No Code"}\nTeacher: ${course.shift?.teacher ?? "No Teacher"}",
+                  ),
+                  trailing: ElevatedButton(
+                    onPressed: ((course.vacancies ?? 0) > 0 && !enrolled)
+                        ? () => onEnroll(course)
+                        : null,
+                    child: Text(
+                      enrolled
+                          ? "Enrolled"
+                          : ((course.vacancies ?? 0) > 0
+                              ? "Enroll"
+                              : "No Vacancies"),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

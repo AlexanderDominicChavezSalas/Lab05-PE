@@ -122,4 +122,9 @@ class ViewModel extends ChangeNotifier {
       print("Algo salió mal y no se desmatriculó");
     }
   }
+
+  /// Verifica si el estudiante está inscrito en un curso
+  bool isEnrolled(int courseId) {
+    return EnrolledCourses.any((enrollment) => enrollment.courseId == courseId);
+  }
 }
