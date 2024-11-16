@@ -7,80 +7,106 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pagecontroller = Provider.of<ViewModel>(context);
+    final pageController = Provider.of<ViewModel>(context);
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 54, 184, 244),
-      appBar: AppBar(
-        title: const Text("ProfilePage"), //page02
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
-        onPressed: () {
-          pagecontroller.navigateToEnrollmentPage();
-        },
-        child: const Icon(Icons.add),
-      ),
-      body: Column(
-        children: [
-          const Text("Nombre"),
-          Text(pagecontroller.studentLogged.name.toString()),
-          const Text("Email"),
-          Text(pagecontroller.studentLogged.email.toString()),
-          const Text("CUI"),
-          Text(pagecontroller.studentLogged.cui.toString()),
-          const SizedBox(width: 20),
-          const Text("Cursos a los que el estudiante esta inscrito"),
-          ListView.builder(
-              itemCount: pagecontroller.EnrolledCourses.length,
-              //itemCount: 3,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Center(
+                child: Text(
+                  "Perfil",
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text("Nombre: ${pageController.studentLogged.name}"),
+            Text("Email: ${pageController.studentLogged.email}"),
+            Text("CUI: ${pageController.studentLogged.cui}"),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                pageController.navigateToEnrollmentPage();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 97, 3, 3),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Inscribirse a un curso"),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Cursos Inscritos",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            ListView.builder(
               shrinkWrap: true,
-              itemBuilder: (BuildContext context, i) {
-                return ListTile(
-                  tileColor: Colors.white,
-                  title: Text(pagecontroller.EnrolledCourses[i].course!.name
-                      .toString()),
-                  subtitle: Text(pagecontroller
-                      .EnrolledCourses[i].course!.shift!.teacher
-                      .toString()),
-                  trailing: PopupMenuButton(
-                    child: const Icon(Icons.more_vert),
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<String>>[
-                      const PopupMenuItem(
-                          value: 'delete', child: Text("Borrar"))
-                    ],
-                    onSelected: (String value) {
-                      if (value == "delete") {
-                        pagecontroller.deleteEnrollment(
-                            pagecontroller.EnrolledCourses[i].id.toString(), i);
-                      }
-                    },
+              itemCount: pageController.EnrolledCourses.length,
+              itemBuilder: (context, index) {
+                final course = pageController.EnrolledCourses[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  child: ListTile(
+                    title: Text(
+                      course.course!.name.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      "Profesor: ${course.course!.shift!.teacher}",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.white),
+                      onPressed: () {
+                        _showUnenrollConfirmation(
+                            context, pageController, index);
+                      },
+                    ),
+                    tileColor: const Color.fromARGB(255, 97, 3, 3),
                   ),
                 );
-              }),
-          Container(
-            child: Row(
-              children: [
-                ElevatedButton(
-                    onPressed: () {
-                      pagecontroller.navigateToProfilePage();
-                    },
-                    child: const Text("Perfil")),
-                ElevatedButton(
-                    onPressed: () {
-                      pagecontroller.navigateToEnrollmentPage();
-                    },
-                    child: const Text("Cursos")),
-                ElevatedButton(
-                    onPressed: () {
-                      pagecontroller.navigateToLoginPage();
-                    },
-                    child: const Text("Logout")),
-              ],
+              },
             ),
-          )
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  void _showUnenrollConfirmation(
+      BuildContext context, ViewModel pageController, int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Desmatriculación'),
+          content: const Text('¿Estás seguro de que deseas desmatricularte?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el modal
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                pageController.deleteEnrollment(
+                    pageController.EnrolledCourses[index].id.toString(), index);
+                Navigator.of(context).pop(); // Cerrar el modal
+              },
+              child: const Text('Desmatricularse'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
