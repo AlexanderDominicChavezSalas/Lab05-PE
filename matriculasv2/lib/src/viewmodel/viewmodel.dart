@@ -19,7 +19,7 @@ class ViewModel extends ChangeNotifier {
   List<Enrollment> EnrolledCourses = [];
   List<Course> AllCourses = [];
   ViewModel(this._navigationService) {
-    //getAllCourses();
+    getAllCourses();
   }
 
   navigateToEnrollmentPage() {

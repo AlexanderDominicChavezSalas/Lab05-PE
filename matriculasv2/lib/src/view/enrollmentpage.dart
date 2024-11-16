@@ -114,7 +114,7 @@ class EnrollmentView extends StatelessWidget {
             padding: EdgeInsets.all(16.0),
             child: Center(
               child: Text(
-                "Available Courses",
+                "Cursos disponibles",
                 style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               ),
             ),
