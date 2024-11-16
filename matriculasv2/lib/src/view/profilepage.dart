@@ -15,8 +15,7 @@ class ProfilePage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              _logout(
-                  context, pageController); // Llamamos a la función de logout
+              pageController.navigateToLoginPage();
             },
           ),
         ],
@@ -120,13 +119,5 @@ class ProfilePage extends StatelessWidget {
         );
       },
     );
-  }
-
-  // Función para realizar el logout
-  void _logout(BuildContext context, ViewModel pageController) {
-    // Aquí puedes agregar la lógica de logout, por ejemplo, limpiar el estado
-    pageController.logout(); // Llama a un método que maneje el logout
-    Navigator.pushReplacementNamed(
-        context, '/login'); // Redirige a la pantalla de login
   }
 }

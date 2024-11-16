@@ -127,8 +127,4 @@ class ViewModel extends ChangeNotifier {
   bool isEnrolled(int courseId) {
     return EnrolledCourses.any((enrollment) => enrollment.courseId == courseId);
   }
-
-  void logout() {
-    _navigationService.navigate(const LoginPage());
-  }
 }

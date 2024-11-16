@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ApiProvider {
   final String _baseURL =
-      "http://192.168.0.7:3000/api/v1"; //cambiar segun tu localhost
+      "http://192.168.0.5:3000/api/v1"; //cambiar segun tu localhost
 
   get(String url) async {
     try {
